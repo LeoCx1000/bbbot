@@ -1,5 +1,6 @@
 from typing import TypeVar, List, Iterator
 
+import re
 import discord
 import discord.components
 from discord import app_commands
@@ -39,18 +40,27 @@ class TodoEntry(discord.ui.Button["TodoListView"]):
         await interaction.response.edit_message(view=view)
 
 
+def subber(m):
+    amt = int(m.group(0))
+    if amt < 64:
+        return str(amt)
+    return f"({amt//64} stack{amt//64 > 1 and 's' or ''}" + (
+        amt % 64 > 0 and f" + {amt % 64})" or ")"
+    )
+
+
 class TodoListView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
         for i in range(25):
-            self.add_item(TodoEntry(label="NONE", custom_id=f"item-{i}"))
+            self.add_item(TodoEntry(label="", custom_id=f"item-{i}"))
 
     def fill_labels(self, items: list[str]):
         self.clear_items()
         for i, item in enumerate(items):
             self.add_item(
                 TodoEntry(
-                    label=item[:80],
+                    label=re.sub(r"\d+", subber, item)[:80],
                     style=discord.ButtonStyle.red,
                     custom_id=f"item-{i}",
                 )

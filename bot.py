@@ -22,6 +22,10 @@ class BBBot(commands.Bot):
             command_prefix=commands.when_mentioned,
             help_command=None,
             intents=discord.Intents.default(),
+            activity=discord.Activity(
+                type=discord.ActivityType.listening, name="/new-todo"
+            ),
+            status=discord.Status.idle,
         )
 
     async def setup_hook(self) -> None:

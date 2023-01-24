@@ -126,7 +126,8 @@ class TodoList(commands.Cog):
                 pass
         else:
             view = ClickMe(ctx.author)
-            view.message = await ctx.send(view=view)
+            view.message = await ctx.send(ctx.author.mention, view=view)
+            await ctx.message.delete()
 
 
 async def setup(bot: commands.Bot):

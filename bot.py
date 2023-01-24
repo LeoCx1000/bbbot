@@ -21,7 +21,7 @@ class BBBot(commands.Bot):
         super().__init__(
             command_prefix=commands.when_mentioned_or("!"),
             help_command=None,
-            intents=discord.Intents.default(),
+            intents=discord.Intents.default() | discord.Intents(message_content=True),
             activity=discord.Activity(
                 type=discord.ActivityType.listening, name="/new-todo"
             ),

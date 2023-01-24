@@ -87,15 +87,46 @@ class CreateTodoListView(discord.ui.Modal, title="New Todo List"):
             await interaction.channel.send(view=view)  # type: ignore
 
 
-class TodoList(commands.Cog):
-    @app_commands.command(name="new-todo")
-    async def newTodoListView(self, interaction: discord.Interaction):
-        """Creates a new to-do list"""
+class ClickMe(discord.ui.View):
+    def __init__(self, author: discord.abc.User):
+        super().__init__(timeout=15)
+        self.author = author
+        self.message: discord.Message | None = None
+
+    @discord.ui.button(label="click me")
+    async def click_me(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
         await interaction.response.send_modal(CreateTodoListView())
-        try:
-            await interaction.followup.send("", ephemeral=True)
-        except:
-            pass
+        await interaction.delete_original_response()
+
+    async def on_timeout(self) -> None:
+        if self.message:
+            self.click_me.disabled = True
+            self.click_me.label = "Prompt Timed Out"
+            await self.message.edit(view=self)
+
+    async def interaction_check(self, interaction: discord.Interaction, /):
+        if interaction.user == self.author:
+            return True
+        await interaction.response.send_message(
+            "that is not your button", ephemeral=True
+        )
+
+
+class TodoList(commands.Cog):
+    @commands.hybrid_command(name="new-todo", aliases=["nt"])
+    async def newTodoListView(self, ctx: commands.Context):
+        """Creates a new to-do list"""
+        if ctx.interaction:
+            await ctx.interaction.response.send_modal(CreateTodoListView())
+            try:
+                await ctx.interaction.followup.send("", ephemeral=True)
+            except:
+                pass
+        else:
+            view = ClickMe(ctx.author)
+            view.message = await ctx.send(view=view)
 
 
 async def setup(bot: commands.Bot):
